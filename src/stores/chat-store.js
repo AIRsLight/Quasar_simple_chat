@@ -14,7 +14,8 @@ export const ChatStore = defineStore('Chat', {
     address:"",
     temperature:0.7,
     system:"",
-    pre:""
+    pre:"",
+    loading:false,
 
   }),
   persist: true,
@@ -48,9 +49,11 @@ export const ChatStore = defineStore('Chat', {
         "role":"user",
         "content":content
       })
+      this.loading = true
       axios.post(this.fullAddress, this.httpBody).then(r => {
-
+        this.loading = false
         this.messages.push(r.data.choices[0].message)
+
 
       }).catch(err=>{
         Notify.create({
@@ -59,7 +62,31 @@ export const ChatStore = defineStore('Chat', {
           position: "top",
           timeout: 2000
         })
+        this.loading = false
       })
     },
+    reGeneration(){
+      const last = this.messages[this.messages.length-1]
+      if(last.role === "user"){
+      }
+      if(last.role === "assistant"){
+        this.messages.splice(this.messages.length-1,1)
+      }
+      this.loading = true
+      axios.post(this.fullAddress, this.httpBody).then(r => {
+        this.loading = false
+        this.messages.push(r.data.choices[0].message)
+
+
+      }).catch(err=>{
+        this.loading = false
+        Notify.create({
+          message: "发生错误",
+          color: "negative",
+          position: "top",
+          timeout: 2000
+        })
+      })
+    }
   },
 });
